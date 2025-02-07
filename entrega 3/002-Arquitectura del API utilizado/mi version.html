@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+	</head>
+	<body>
+		<script>
+			// Función principal para capturar la pantalla
+			async function captureScreen() {
+				 try {																						
+					 
+					  // Solicitar acceso al dispositivo para capturar la pantalla
+					  const stream = await navigator.mediaDevices.getDisplayMedia(
+					  	{ 
+					  		video: true // Solo capturar video
+					  	}
+					  	);																						
+					  
+					  // Crear un elemento de video y asignarle el flujo de captura
+					  const video = document.createElement('video');							
+					  video.srcObject = stream;														
+					  
+					  // Crear un lienzo para capturar imágenes de la pantalla
+					  let lienzo = document.createElement("canvas");								
+					  let contexto = lienzo.getContext("2d");										
+					  lienzo.width = 1920;																
+					  lienzo.height = 1080;																
+					  
+					  // Añadir el lienzo al documento para visualizarlo (opcional)
+					  document.body.appendChild(lienzo);												
+					  
+					  // Capturar el estado inicial de la imagen de la pantalla
+					  let estado = contexto.getImageData(0,0,1920,1080);
+					  
+					  // Crear un segundo lienzo para comparar imágenes
+					  let lienzo2 = document.createElement("canvas");							
+					  let contexto2 = lienzo2.getContext("2d");										
+					  lienzo2.width = 1920;																
+					  lienzo2.height = 1080;																
+					  document.body.appendChild(lienzo2);												
+					  
+					  // Crear un tercer lienzo para un posible uso futuro
+					  let lienzo3 = document.createElement("canvas");							
+					  let contexto3 = lienzo2.getContext("2d");										
+					  lienzo3.width = 1920;																
+					  lienzo3.height = 1080;																
+					  document.body.appendChild(lienzo3);												
+					  
+					  // Cuando los metadatos del video se hayan cargado (por ejemplo, resolución)
+					  video.onloadedmetadata = function(){												
+					  		video.play();																		
+					  }
+					  
+					  // Añadir el elemento de video al documento para visualizarlo
+					  document.body.appendChild(video);													
+					  
+					  // Detectar actualizaciones del video y comparar con el estado anterior
+					  video.addEventListener('timeupdate', () => {									
+						 	// Dibujar el estado actual de la pantalla sobre el lienzo
+						 	contexto.drawImage(video,0,0);													
+						 	// Capturar el nuevo estado para comparar los cambios
+						 	let nuevoestado = contexto.getImageData(0,0,1920,1080);
+						 	let dame = contexto2.getImageData(0,0,1920,1080);						
+						 	
+						 	// Comparar cada píxel entre el estado anterior y el nuevo
+						 	for(let i = 0; i < nuevoestado.data.length; i += 4) {						
+						 		if(nuevoestado.data[i] == estado.data[i]) {							
+						 		
+						 			// Si no hay cambio, pintamos de blanco
+						 			dame.data[i] = 255;													
+						 			dame.data[i+1] = 255;												
+						 			dame.data[i+2] = 255;												
+						 			dame.data[i+3] = 255;												  
+						 		} else {																			
+						 		
+						 			// Si hay cambio, pintamos de negro
+						 			dame.data[i] = 0;													
+						 			dame.data[i+1] = 0;												
+						 			dame.data[i+2] = 0;												
+						 			dame.data[i+3] = 255;												
+						 		}
+						 	}
+						 	// Actualizar el segundo lienzo con la imagen modificada
+						 	contexto2.putImageData(dame, 0, 0);
+						 	// Guardar el nuevo estado como referencia para la próxima comparación
+						 	estado = nuevoestado;															
+					  });
+					  
+				 } catch (error) { // Manejo de errores si no se puede capturar la pantalla
+					  console.error("Error al capturar la pantalla:", error); // Mostrar el error en la consola
+				 }
+				 
+			}
+
+			// Iniciar la función para capturar la pantalla
+			captureScreen();
+
+		</script>
+	</body>
+</html>
+
