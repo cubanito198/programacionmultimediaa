@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Earth 3D en Three.js</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: black; /* Fondo negro por defecto */
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // Configuración básica de la escena
+    const escena = new THREE.Scene();
+    const camara = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderizador = new THREE.WebGLRenderer({ antialias: true });
+    renderizador.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderizador.domElement);
+
+    // Crear la Tierra
+    const texturaTierra = new THREE.TextureLoader().load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg');
+    const geometriaTierra = new THREE.SphereGeometry(2, 64, 64);
+    const materialTierra = new THREE.MeshStandardMaterial({ map: texturaTierra });
+    const tierra = new THREE.Mesh(geometriaTierra, materialTierra);
+    escena.add(tierra);
+
+    // Crear el fondo estrellado
+    const geometriaEstrellas = new THREE.SphereGeometry(50, 64, 64);
+    const texturaEstrellas = new THREE.TextureLoader().load('https://threejs.org/examples/textures/planets/starfield.jpg'); // Textura estelar
+    const materialEstrellas = new THREE.MeshBasicMaterial({ map: texturaEstrellas, side: THREE.BackSide });
+    const fondoEstrellas = new THREE.Mesh(geometriaEstrellas, materialEstrellas);
+    escena.add(fondoEstrellas);
+
+    // Añadir luces
+    const luz = new THREE.PointLight(0xffffff, 2); // Mayor intensidad
+    luz.position.set(5, 5, 5);
+    escena.add(luz);
+    escena.add(new THREE.AmbientLight(0x404040));
+
+    // Posición inicial de la cámara
+    camara.position.set(0, 0, 5);
+
+    // Variables de movimiento
+    const velocidadMovimiento = 0.1;  // Velocidad de traslación
+    const velocidadRotacion = 0.02;   // Velocidad de rotación
+
+    // Controles de la cámara
+    document.addEventListener('keydown', (e) => {
+      switch(e.key) {
+        case 'ArrowUp': camara.position.y += velocidadMovimiento; break;      // Subir
+        case 'ArrowDown': camara.position.y -= velocidadMovimiento; break;    // Bajar
+        case 'ArrowLeft': camara.position.x -= velocidadMovimiento; break;    // Izquierda
+        case 'ArrowRight': camara.position.x += velocidadMovimiento; break;   // Derecha
+        case 'w': camara.position.z -= velocidadMovimiento; break;            // Adelante
+        case 's': camara.position.z += velocidadMovimiento; break;            // Atrás
+        case 'a': camara.rotation.y += velocidadRotacion; break;              // Rotar izquierda
+        case 'd': camara.rotation.y -= velocidadRotacion; break;              // Rotar derecha
+      }
+    });
+
+    // Animación
+    function animar() {
+      requestAnimationFrame(animar);
+      tierra.rotation.y += 0.001; // Rotación suave de la Tierra
+      renderizador.render(escena, camara);
+    }
+    animar();
+  </script>
+</body>
+</html>
