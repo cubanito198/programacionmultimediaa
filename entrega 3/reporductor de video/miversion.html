@@ -1,0 +1,340 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+  
+    <style>
+      
+   /* Estilos generales */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #121212;
+    color: white;
+    font-family: Arial, sans-serif;
+    flex-direction: column;
+}
+
+/* Contenedor principal */
+.contenedor-principal {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+/* Contenedor de opciones */
+.opciones-video {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 180px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10;
+}
+
+.opciones-video button {
+    background: #333;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.opciones-video button:hover {
+    background: red;
+}
+
+
+/* Contenedor del video */
+.jvideo {
+    width: 960px;
+    height: 540px;
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0px 6px 30px rgba(0, 0, 0, 0.5);
+    background: black;
+}
+
+.jvideo video {
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+}
+
+/* Controles */
+.barracontroles {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 70px;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    transition: opacity 0.3s;
+}
+
+/* Agrupar botones en la izquierda */
+.controles-izquierda {
+    display: flex;
+    gap: 8px; 
+    align-items: center;
+}
+
+.barracontroles button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    transition: transform 0.2s;
+}
+
+.barracontroles button img {
+    width: 100%;
+    filter: invert(1);
+}
+
+.barracontroles button:hover {
+    transform: scale(1.1);
+}
+
+/* Controles de la derecha (Volumen) */
+.controles-derecha {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+input[type="range"] {
+    width: 130px;
+    appearance: none;
+    background: transparent;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    background: #555;
+    height: 6px;
+    border-radius: 5px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: red;
+    border-radius: 50%;
+    margin-top: -3px;
+}
+
+.barraprogreso {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    height: 6px;
+    background: #333;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.progreso {
+    height: 100%;
+    width: 0%;
+    background: red;
+    border-radius: 5px;
+}
+
+
+
+    </style>
+  </head>
+  <body>
+   
+    <!-- El video original, cuyo comportamiento será controlado por JavaScript -->
+    <div class="contenedor-principal">
+      <div class="opciones-video">
+          <button id="btn-fullscreen">Pantalla Completa</button>
+          <button id="btn-speed">Velocidad x2</button>
+         
+      </div>
+  
+      <div class="jvideo">
+          <video src="video.mp4"></video>
+      </div>
+  </div>
+  
+
+    <script>
+
+      // Este bloque de código se ejecuta cuando la página está completamente cargada
+      window.onload = function() {       
+        // Seleccionamos todos los elementos de video en la página
+        let videos = document.querySelectorAll("video") 
+
+        // Para cada video encontrado, aplicamos los controles personalizados
+        videos.forEach(function(video) {
+          
+          let volumen = 1.0; // Volumen inicial del video
+
+          let tagvideo = video; // El elemento de video
+          let contienevideo = document.createElement("div"); // Creamos un contenedor para el video
+          contienevideo.classList.add("jvideo"); // Añadimos la clase "jvideo" al contenedor
+          tagvideo.replaceWith(contienevideo); // Reemplazamos el video original con el contenedor
+          contienevideo.appendChild(tagvideo); // Añadimos el video al nuevo contenedor
+
+          // Creamos y añadimos la barra de controles
+          let barracontroles = document.createElement("div");
+          barracontroles.classList.add("barracontroles");
+          contienevideo.appendChild(barracontroles);
+
+          // Creamos y añadimos la barra de progreso
+          let barraprogreso = document.createElement("div");
+          barraprogreso.classList.add("barraprogreso");
+          contienevideo.appendChild(barraprogreso);
+
+          // Creamos el elemento de progreso dentro de la barra
+          let progreso = document.createElement("div");
+          progreso.classList.add("progreso");
+          barraprogreso.appendChild(progreso);
+
+          // Cada vez que el tiempo del video cambia, actualizamos la barra de progreso
+          tagvideo.addEventListener('timeupdate', () => {
+            let actual = tagvideo.currentTime; // Tiempo actual del video
+            let total = tagvideo.duration; // Duración total del video
+            let porcentaje = (actual / total) * 100; // Porcentaje del video que se ha reproducido
+            progreso.style.width = porcentaje + "%"; // Actualizamos la barra de progreso
+          });
+
+          /*////////////////////// BOTÓN DE PLAY //////////////////////*/
+          let botonplay = document.createElement("button");
+          botonplay.innerHTML = "<img src='play.svg'>"; // El ícono del botón es el de "play"
+          barracontroles.appendChild(botonplay); // Añadimos el botón a la barra de controles
+          let estado = "pause"; // El estado inicial es "pause"
+          
+          // Al hacer clic en el botón de play, se alterna entre play y pause
+          botonplay.onclick = function() {
+            playopausa(); // Llamamos a la función que maneja play/pause
+          }
+
+          /*////////////////////// BOTÓN DE VOLUMEN MÁS //////////////////////*/
+          let botonvolumenmas = document.createElement("button");
+          botonvolumenmas.innerHTML = "<img src='volumenmas.svg'>"; // Ícono de aumentar volumen
+          barracontroles.appendChild(botonvolumenmas); // Añadimos el botón a la barra de controles
+          
+          // Al hacer clic en el botón de volumen más, se aumenta el volumen
+          botonvolumenmas.onclick = function() {
+            if(tagvideo.volume < 1.0) { // Si el volumen es menor que 1
+              tagvideo.volume += 0.1; // Aumentamos el volumen en 0.1
+            }
+          }
+
+          /*////////////////////// BOTÓN DE VOLUMEN MENOS //////////////////////*/
+          let botonvolumenmenos = document.createElement("button");
+          botonvolumenmenos.innerHTML = "<img src='volumenmenos.svg'>"; // Ícono de disminuir volumen
+          barracontroles.appendChild(botonvolumenmenos); // Añadimos el botón a la barra de controles
+
+          // Al hacer clic en el botón de volumen menos, se disminuye el volumen
+          botonvolumenmenos.onclick = function() {
+            if(tagvideo.volume > 0.0) { // Si el volumen es mayor que 0
+              tagvideo.volume -= 0.1; // Disminuimos el volumen en 0.1
+            }
+          }
+
+          /*////////////////////// CONTROL DE VOLUMEN //////////////////////*/
+          let controlvolumen = document.createElement("input");
+          controlvolumen.setAttribute("type", "range"); // Creamos un control deslizante para el volumen
+          contienevideo.appendChild(controlvolumen); // Añadimos el control al contenedor del video
+          
+          // Cuando el usuario cambia el valor del control deslizante, ajustamos el volumen
+          controlvolumen.onchange = function() {
+            tagvideo.volume = this.value / 100; // Ajustamos el volumen con el valor del control deslizante
+          }
+
+          /*////////////////////// BOTÓN DE RETROCEDER //////////////////////*/
+          let botonretroceder = document.createElement("button");
+          botonretroceder.innerHTML = "<img src='retroceder.svg'>"; // Ícono de retroceder
+          barracontroles.appendChild(botonretroceder); // Añadimos el botón a la barra de controles
+
+          // Al hacer clic en el botón de retroceder, retrocedemos el video 10 segundos
+          botonretroceder.onclick = function() {
+            tagvideo.currentTime -= 10; // Retrocedemos 10 segundos
+          }
+
+          /*////////////////////// BOTÓN DE AVANZAR //////////////////////*/
+          let botonavanzar = document.createElement("button");
+          botonavanzar.innerHTML = "<img src='avanzar.svg'>"; // Ícono de avanzar
+          barracontroles.appendChild(botonavanzar); // Añadimos el botón a la barra de controles
+
+          // Al hacer clic en el botón de avanzar, avanzamos el video 10 segundos
+          botonavanzar.onclick = function() {
+            tagvideo.currentTime += 10; // Avanzamos 10 segundos
+          }
+
+          /*////////////////////// CLICK EN EL VIDEO //////////////////////*/
+          tagvideo.onclick = function() {
+            playopausa(); // Al hacer clic directamente en el video, se reproduce o pausa
+          }
+
+          // Función para alternar entre play y pause
+          function playopausa() {
+            if(estado == "pause") {
+              botonplay.innerHTML = "<img src='pause.svg'>"; // Si está pausado, cambiamos a "pause"
+              estado = "play"; // Actualizamos el estado a "play"
+              tagvideo.play(); // Reproducimos el video
+            } else {
+              botonplay.innerHTML = "<img src='play.svg'>"; // Si está reproduciéndose, cambiamos a "play"
+              estado = "pause"; // Actualizamos el estado a "pause"
+              tagvideo.pause(); // Pausamos el video
+            }
+          }
+        })
+      }
+      window.onload = function() {
+    let video = document.querySelector(".jvideo video");
+
+    // Botón de pantalla completa
+    document.getElementById("btn-fullscreen").addEventListener("click", function() {
+        if (video.requestFullscreen) {
+            video.requestFullscreen();
+        } else if (video.mozRequestFullScreen) {
+            video.mozRequestFullScreen();
+        } else if (video.webkitRequestFullscreen) {
+            video.webkitRequestFullscreen();
+        } else if (video.msRequestFullscreen) {
+            video.msRequestFullscreen();
+        }
+    });
+
+    // Botón de velocidad x2
+    document.getElementById("btn-speed").addEventListener("click", function() {
+        video.playbackRate = video.playbackRate === 1 ? 2 : 1; // Alterna entre 1x y 2x
+        this.textContent = video.playbackRate === 2 ? "Velocidad x1" : "Velocidad x2";
+    });
+
+    // Botón de subtítulos (asumiendo que el video tiene subtítulos en el archivo)
+    document.getElementById("btn-subtitles").addEventListener("click", function() {
+        let track = video.textTracks[0]; // Obtiene el primer track de subtítulos
+        if (track) {
+            track.mode = track.mode === "showing" ? "hidden" : "showing";
+            this.textContent = track.mode === "showing" ? "Ocultar Subtítulos" : "Subtítulos";
+        }
+    });
+};
+
+    </script>
+  </body>
+</html>
